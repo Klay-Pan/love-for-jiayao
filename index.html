@@ -286,6 +286,128 @@
       border-radius: 20px;
       animation: scaleIn 0.6s ease 0.3s both;
     }
+    .btn-game {
+      margin-top: 30px;
+      padding: 14px 40px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(255, 107, 157, 0.4);
+    }
+
+    /* 贪吃蛇游戏 */
+    .game-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0 100px;
+      background: linear-gradient(135deg, #050810 0%, #0a1628 50%, #050810 100%);
+    }
+    .game-screen.active {
+      display: flex;
+    }
+    .game-title {
+      font-size: 16px;
+      color: rgba(255, 182, 193, 0.9);
+      margin-bottom: 8px;
+    }
+    .game-score {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 10px;
+    }
+    .game-canvas-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-width: 100%;
+    }
+    #gameCanvas {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      touch-action: none;
+    }
+    .game-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      z-index: 25;
+    }
+    .game-overlay.active {
+      display: flex;
+    }
+    .game-over-text {
+      font-size: 24px;
+      color: #ff6b9d;
+      margin-bottom: 10px;
+    }
+    .game-over-score {
+      font-size: 16px;
+      opacity: 0.8;
+      margin-bottom: 25px;
+    }
+    .btn-restart {
+      padding: 12px 35px;
+      font-size: 16px;
+      color: #fff;
+      background: linear-gradient(135deg, #ff6b9d, #c44569);
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+    .dpad {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: grid;
+      grid-template-columns: 55px 55px 55px;
+      grid-template-rows: 55px 55px 55px;
+      gap: 6px;
+      z-index: 30;
+    }
+    .dpad-btn {
+      width: 55px;
+      height: 55px;
+      border: none;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .dpad-btn:active {
+      background: rgba(255, 107, 157, 0.4);
+    }
+    .dpad-btn.blank {
+      background: transparent;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
@@ -293,7 +415,7 @@
   <canvas class="canvas-wrap" id="canvas"></canvas>
   <div class="hearts" id="hearts"></div>
 
-  <div class="quiz-container">
+  <div class="quiz-container" id="quiz-container">
     <!-- 开始页 -->
     <div class="screen start-screen active" id="startScreen">
       <div class="start-title">✨ 佳瑶，来答题吧～ ✨</div>
@@ -316,6 +438,32 @@
       <div class="main-text">潘海涛<span class="highlight">最爱</span>林佳瑶</div>
       <div class="reward-subtitle">Forever & Always</div>
       <div class="reward-date">💕 每一天都比昨天更爱你 💕</div>
+      <button class="btn-game" id="btnGame">开始贪吃蛇 🐍</button>
+    </div>
+  </div>
+
+  <!-- 贪吃蛇游戏 -->
+  <div class="game-screen" id="gameScreen">
+    <div class="game-title">林佳瑶 吃 潘海涛 越吃越大 💕</div>
+    <div class="game-score" id="gameScore">得分: 0</div>
+    <div class="game-canvas-wrap">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+    <div class="game-overlay" id="gameOverlay">
+      <div class="game-over-text">游戏结束</div>
+      <div class="game-over-score" id="finalScore">得分: 0</div>
+      <button class="btn-restart" id="btnRestart">再玩一次</button>
+    </div>
+    <div class="dpad">
+      <span class="dpad-btn blank"></span>
+      <button class="dpad-btn" id="btnUp" aria-label="上">↑</button>
+      <span class="dpad-btn blank"></span>
+      <button class="dpad-btn" id="btnLeft" aria-label="左">←</button>
+      <span class="dpad-btn blank"></span>
+      <button class="dpad-btn" id="btnRight" aria-label="右">→</button>
+      <span class="dpad-btn blank"></span>
+      <button class="dpad-btn" id="btnDown" aria-label="下">↓</button>
+      <span class="dpad-btn blank"></span>
     </div>
   </div>
 
@@ -483,6 +631,12 @@
         loadQuestion();
       });
 
+      document.getElementById('btnGame').addEventListener('click', () => {
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('gameScreen').classList.add('active');
+        initSnakeGame();
+      });
+
       // 奖励页点击特效
       document.body.addEventListener('click', function(e) {
         if (!document.getElementById('rewardScreen').classList.contains('active')) return;
@@ -502,6 +656,171 @@
           setTimeout(() => heart.remove(), 6000);
         }
       });
+
+      // ========== 贪吃蛇游戏 ==========
+      function initSnakeGame() {
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const wrap = canvas.parentElement;
+
+        const COLS = 10;
+        const ROWS = 14;
+        let cellSize = 0;
+
+        function resize() {
+          const maxW = Math.min(window.innerWidth - 40, 360);
+          const maxH = Math.min(window.innerHeight - 200, 500);
+          cellSize = Math.min(Math.floor(maxW / COLS), Math.floor(maxH / ROWS));
+          canvas.width = COLS * cellSize;
+          canvas.height = ROWS * cellSize;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        let snake = [{ x: 2, y: 7 }, { x: 1, y: 7 }, { x: 0, y: 7 }];
+        let dir = { x: 1, y: 0 };
+        let nextDir = { x: 1, y: 0 };
+        let food = { x: 7, y: 7 };
+        let score = 0;
+        let gameOver = false;
+        let gameLoopId = null;
+        const SPEED = 120;
+
+        function randomFood() {
+          let nx, ny;
+          do {
+            nx = Math.floor(Math.random() * COLS);
+            ny = Math.floor(Math.random() * ROWS);
+          } while (snake.some(s => s.x === nx && s.y === ny));
+          food = { x: nx, y: ny };
+        }
+
+        function draw() {
+          ctx.fillStyle = 'rgba(5, 8, 16, 0.95)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          const pad = 2;
+          const fs = Math.max(10, Math.floor(cellSize * 0.4));
+
+          snake.forEach((seg, i) => {
+            const x = seg.x * cellSize + pad;
+            const y = seg.y * cellSize + pad;
+            const w = cellSize - pad * 2;
+            const h = cellSize - pad * 2;
+
+            if (i === 0) {
+              ctx.fillStyle = 'rgba(255, 107, 157, 0.9)';
+              ctx.fillRect(x, y, w, h);
+              ctx.fillStyle = '#fff';
+              ctx.font = 'bold ' + fs + 'px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText('林佳瑶', x + w / 2, y + h / 2);
+            } else {
+              ctx.fillStyle = 'rgba(255, 182, 193, 0.6)';
+              ctx.fillRect(x, y, w, h);
+              ctx.fillStyle = 'rgba(255,255,255,0.8)';
+              ctx.font = fs + 'px sans-serif';
+              ctx.fillText('瑶', x + w / 2, y + h / 2);
+            }
+          });
+
+          ctx.fillStyle = 'rgba(33, 150, 243, 0.9)';
+          const fx = food.x * cellSize + pad;
+          const fy = food.y * cellSize + pad;
+          const fw = cellSize - pad * 2;
+          const fh = cellSize - pad * 2;
+          ctx.fillRect(fx, fy, fw, fh);
+          ctx.fillStyle = '#fff';
+          ctx.font = 'bold ' + fs + 'px sans-serif';
+          ctx.fillText('潘海涛', fx + fw / 2, fy + fh / 2);
+        }
+
+        function tick() {
+          if (gameOver) return;
+          dir = { x: nextDir.x, y: nextDir.y };
+
+          const head = snake[0];
+          const newHead = { x: head.x + dir.x, y: head.y + dir.y };
+
+          if (newHead.x < 0 || newHead.x >= COLS || newHead.y < 0 || newHead.y >= ROWS) {
+            endGame();
+            return;
+          }
+          if (snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
+            endGame();
+            return;
+          }
+
+          snake.unshift(newHead);
+          if (newHead.x === food.x && newHead.y === food.y) {
+            score++;
+            document.getElementById('gameScore').textContent = '得分: ' + score;
+            randomFood();
+          } else {
+            snake.pop();
+          }
+
+          draw();
+        }
+
+        function endGame() {
+          gameOver = true;
+          if (gameLoopId) clearInterval(gameLoopId);
+          document.getElementById('gameOverlay').classList.add('active');
+          document.getElementById('finalScore').textContent = '得分: ' + score;
+        }
+
+        function startGame() {
+          snake = [{ x: 2, y: 7 }, { x: 1, y: 7 }, { x: 0, y: 7 }];
+          dir = nextDir = { x: 1, y: 0 };
+          randomFood();
+          score = 0;
+          gameOver = false;
+          document.getElementById('gameScore').textContent = '得分: 0';
+          document.getElementById('gameOverlay').classList.remove('active');
+          draw();
+          if (gameLoopId) clearInterval(gameLoopId);
+          gameLoopId = setInterval(tick, SPEED);
+        }
+
+        function setDir(dx, dy) {
+          if (dx === -dir.x && dy === -dir.y) return;
+          nextDir = { x: dx, y: dy };
+        }
+
+        document.getElementById('btnUp').addEventListener('click', () => setDir(0, -1));
+        document.getElementById('btnDown').addEventListener('click', () => setDir(0, 1));
+        document.getElementById('btnLeft').addEventListener('click', () => setDir(-1, 0));
+        document.getElementById('btnRight').addEventListener('click', () => setDir(1, 0));
+
+        let touchStart = { x: 0, y: 0 };
+        canvas.addEventListener('touchstart', e => {
+          touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }, { passive: true });
+        canvas.addEventListener('touchend', e => {
+          const dx = e.changedTouches[0].clientX - touchStart.x;
+          const dy = e.changedTouches[0].clientY - touchStart.y;
+          if (Math.abs(dx) > Math.abs(dy)) {
+            setDir(dx > 0 ? 1 : -1, 0);
+          } else if (Math.abs(dy) > 20) {
+            setDir(0, dy > 0 ? 1 : -1);
+          }
+        }, { passive: true });
+
+        document.addEventListener('keydown', e => {
+          if (document.getElementById('gameScreen').classList.contains('active')) {
+            if (e.key === 'ArrowUp') { e.preventDefault(); setDir(0, -1); }
+            if (e.key === 'ArrowDown') { e.preventDefault(); setDir(0, 1); }
+            if (e.key === 'ArrowLeft') { e.preventDefault(); setDir(-1, 0); }
+            if (e.key === 'ArrowRight') { e.preventDefault(); setDir(1, 0); }
+          }
+        });
+
+        document.getElementById('btnRestart').addEventListener('click', startGame);
+
+        startGame();
+      }
     })();
   </script>
 </body>
